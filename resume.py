@@ -5,71 +5,9 @@ import docx2txt
 import pytesseract
 import email
 from PIL import Image
-
+from generate_json import generate_json
 
 pytesseract.pytesseract.tesseract_cmd = r'C:\Program Files\Tesseract-OCR\tesseract.exe'
-
-def generate_json(data):
-    json_data = {
-        "data": {
-            "name": {
-                "raw": data["Name"]
-            },
-            "phoneNumbers": [data["Personal Information"]["Phone"]] if data["Personal Information"]["Phone"] else [],
-            "websites": [data["Personal Information"]["LinkedIn"], data["Personal Information"]["GitHub"]] if data["Personal Information"]["LinkedIn"] or data["Personal Information"]["GitHub"] else [],
-            "emails": [data["Personal Information"]["Email"]] if data["Personal Information"]["Email"] else "",
-            "dateOfBirth": "",
-            "location": {
-                "formatted": ""
-            },
-            "objective": "",
-            "languages": [],
-            "totalYearsExperience": "",
-            "education": [
-                {
-                    "id": 0,
-                    "organization": "",
-                    "accreditation": {
-                        "education": "",
-                        "educationLevel": ""
-                    },
-                    "grade": "",
-                    "location": {
-                        "formatted": ""
-                    },
-                    "dates": {
-                        "completionDate": "",
-                        "isCurrent": False,
-                        "startDate": ""
-                    }
-                }
-            ],
-            "profession": "",
-            "linkedin": data["Personal Information"]["LinkedIn"] if data["Personal Information"]["LinkedIn"] else "",
-            "workExperience": [
-                {
-                    "id": 0,
-                    "jobTitle": "",
-                    "organization": "",
-                    "location": "",
-                    "dates": {
-                        "startDate": "",
-                        "endDate": "",
-                        "monthsInPosition": 0,
-                        "isCurrent": False
-                    },
-                    "occupation": {
-                        "jobTitle": ""
-                    }
-                }
-            ],
-            "skills": data["Skills and Technologies"],
-            "projects": data["Projects"],
-            "certifications": data["Awards"]
-        }
-    }
-
-    return json_data
 
 
 def extract_text_from_email(eml_path):
