@@ -1,0 +1,57 @@
+{"data": {
+          "name": {
+            "raw": ""
+          },
+          "phoneNumbers": [],
+          "websites": [],
+          "emails": [],
+          "dateOfBirth": "1992-01-01",
+          "location": {
+            "formatted": "Blacksburg, VA, USA"
+          },
+          "objective": "",
+          "languages": [],
+          "totalYearsExperience": "",
+          "education": [
+            {
+              "id": 0,
+              "organization": "",
+              "accreditation": {
+                "education": "",
+                "educationLevel": ""
+              },
+              "grade": "",
+              "location": {
+                "formatted": "Blacksburg, VA, USA"
+              },
+              "dates": {
+                "completionDate": "2021-05-01",
+                "isCurrent": true,
+                "startDate": "2019-05-01"
+              }
+            }
+          ],
+          "profession": "Software Developer",
+          "linkedin": "",
+          "workExperience": [
+            {
+              "id": 0,
+              "jobTitle": "",
+              "organization": "",
+              "location": "",
+              "dates": {
+                "startDate": "2018-05-01",
+                "endDate": "2018-08-01",
+                "monthsInPosition": 0,
+                "isCurrent": true
+              },
+              "occupation": {
+                "jobTitle": ""
+            }
+            }
+          ],
+          "skills": [],
+      "projects":[],
+      "certifications": []
+ }
+ }
