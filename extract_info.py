@@ -18,8 +18,16 @@ def extract_personal_info(text):
     github_pattern1 = r"(?:https?://)?github\.com/[a-zA-Z0-9_-]+/?"
 
 
-    # Extract personal information
-    names = re.findall(name_pattern, text)
+    try:
+        name_pattern1 = r'''name :"\b[a-zA-Z][a-zA-Z.'\-\s]+\b"'''
+        text = text.replace(' "','"')
+        print('text',text)
+        names = re.findall(name_pattern1, text)
+        print(names)
+        names[0] = names[0].replace('name :','').replace('"','')
+        print(names)
+    except:
+        names = re.findall(name_pattern, text)
     phone_match = re.search(phone_pattern, text) or re.search(phone_pattern1, text) or re.search(phone_pattern2, text) or \
                   re.search(phone_pattern3, text) or re.search(phone_pattern4, text) or re.search(phone_pattern5, text)
     email_pattern = r"EMAIL:\s*(.*)"
@@ -44,9 +52,16 @@ def extract_personal_info(text):
     phone = phone_match.group() if phone_match else None
     phone = phone.replace('PHONE:','').replace('\n','').replace(' ','')
     linkedin = linkedin_match.group() if linkedin_match else None
-    linkedin = linkedin.replace('LINKEDIN:', '').replace('\n', '').replace(' ', '')
+    try:
+        linkedin = linkedin.replace('LINKEDIN:', '').replace('\n', '').replace(' ', '')
+    except:
+        linkedin = linkedin
+
     github = github_match.group() if github_match else None
-    github = github.replace('GITHUB:', '').replace('\n', '').replace(' ', '')
+    try:
+        github = github.replace('GITHUB:', '').replace('\n', '').replace(' ', '')
+    except:
+        github =github
 
     # Create a dictionary for personal information
     personal_info = {
