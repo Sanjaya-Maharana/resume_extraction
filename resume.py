@@ -3,10 +3,89 @@ import re
 import PyPDF2
 import docx2txt
 import pytesseract
+import email
 from PIL import Image
 
 
 pytesseract.pytesseract.tesseract_cmd = r'C:\Program Files\Tesseract-OCR\tesseract.exe'
+
+def generate_json(data):
+    json_data = {
+        "data": {
+            "name": {
+                "raw": data["Name"]
+            },
+            "phoneNumbers": [data["Personal Information"]["Phone"]] if data["Personal Information"]["Phone"] else [],
+            "websites": [data["Personal Information"]["LinkedIn"], data["Personal Information"]["GitHub"]] if data["Personal Information"]["LinkedIn"] or data["Personal Information"]["GitHub"] else [],
+            "emails": [data["Personal Information"]["Email"]] if data["Personal Information"]["Email"] else "",
+            "dateOfBirth": "",
+            "location": {
+                "formatted": ""
+            },
+            "objective": "",
+            "languages": [],
+            "totalYearsExperience": "",
+            "education": [
+                {
+                    "id": 0,
+                    "organization": "",
+                    "accreditation": {
+                        "education": "",
+                        "educationLevel": ""
+                    },
+                    "grade": "",
+                    "location": {
+                        "formatted": ""
+                    },
+                    "dates": {
+                        "completionDate": "",
+                        "isCurrent": False,
+                        "startDate": ""
+                    }
+                }
+            ],
+            "profession": "",
+            "linkedin": data["Personal Information"]["LinkedIn"] if data["Personal Information"]["LinkedIn"] else "",
+            "workExperience": [
+                {
+                    "id": 0,
+                    "jobTitle": "",
+                    "organization": "",
+                    "location": "",
+                    "dates": {
+                        "startDate": "",
+                        "endDate": "",
+                        "monthsInPosition": 0,
+                        "isCurrent": False
+                    },
+                    "occupation": {
+                        "jobTitle": ""
+                    }
+                }
+            ],
+            "skills": data["Skills and Technologies"],
+            "projects": data["Projects"],
+            "certifications": data["Awards"]
+        }
+    }
+
+    return json_data
+
+
+def extract_text_from_email(eml_path):
+    with open(eml_path, 'r', encoding='utf-8') as file:
+        msg = email.message_from_file(file)
+        body = ""
+        if msg.is_multipart():
+            for part in msg.walk():
+                content_type = part.get_content_type()
+                if content_type == 'text/plain':
+                    body += part.get_payload(decode=True).decode(errors='ignore')
+        else:
+            body = msg.get_payload(decode=True).decode(errors='ignore')
+        return body
+
+
 def extract_text_from_pdf(file_path):
     # Extract text from PDF using PyPDF2 library
     with open(file_path, 'rb') as file:
@@ -31,6 +110,8 @@ def extract_text_from_image(image_path):
     text = pytesseract.image_to_string(image)
 
     return text
+
+
 
 
 def extract_personal_info(text):
@@ -66,17 +147,18 @@ def extract_personal_info(text):
         mail_li = email.split('mail')
         mail_li= mail_li[1]+mail_li[2]
         email = mail_li.replace('WWWhttps','')
+    email = email.replace('EMAIL:', '').replace('\n', '').replace(' ', '')
     linkedin_match = re.search(linkedin_pattern, text) or re.search(linkedin_pattern1, text) or re.search(linkedin_pattern2, text)
     github_match = re.search(github_pattern, text) or re.search(github_pattern1, text)
-
     # Get the extracted information
     names = [name.split('\n')[0] for name in names if name != 'Name']
-    print('Names:',names)
     name = names[0]
     phone = phone_match.group() if phone_match else None
-
+    phone = phone.replace('PHONE:','').replace('\n','').replace(' ','')
     linkedin = linkedin_match.group() if linkedin_match else None
+    linkedin = linkedin.replace('LINKEDIN:', '').replace('\n', '').replace(' ', '')
     github = github_match.group() if github_match else None
+    github = github.replace('GITHUB:', '').replace('\n', '').replace(' ', '')
 
     # Create a dictionary for personal information
     personal_info = {
@@ -99,8 +181,10 @@ def extract_education(text):
 
     # Get the extracted education information
     education = education_match.group().strip() if education_match else None
-
-    return education
+    education = education.replace('EDUCATION:','').replace('Technology','')
+    education_cleaned = education.strip()
+    education_list = education_cleaned.split('\n \n \n')
+    return education_list
 
 def extract_work_experience(text):
     # Regular expression pattern to match the work experience section
@@ -139,10 +223,8 @@ def extract_skills(text):
         skills = re.sub(r"\uf0b7", "", skills)
     except:
         skills = skills
-
-
-    # Split the skills by newline characters and remove empty lines
     try:
+        skills = skills.replace('IT SKILLS &TECHNOLOGIES:','')
         skills_list = [skill.strip() for skill in skills.split("\n") if skill.strip()]
     except:
         skills_list = None
@@ -157,19 +239,14 @@ def extract_awards(text):
 
 
 def extract_res(resume_path):
-    #resume_path = r"C:\Users\ACER\Downloads\test3.jpg"  # Replace with the actual resume file path
-
-    # Extract text from the resume based on its format
     if resume_path.endswith('.pdf'):
         resume_text = extract_text_from_pdf(resume_path)
     elif resume_path.endswith('.docx'):
         resume_text = extract_text_from_word(resume_path)
-    else:  # Assuming it's an image file
+    elif resume_path.endswith('.eml'):
+        resume_text = extract_text_from_email(resume_path)
+    else:
         resume_text = extract_text_from_image(resume_path)
-
-    print('*'*150)
-    print(resume_text)
-    print('*' * 150)
 
     # Extract specific sections from the resume text
     personal_info = extract_personal_info(resume_text)
@@ -189,21 +266,13 @@ def extract_res(resume_path):
         "Projects": projects,
         "Awards": awards
     }
-    # Convert the data to JSON format
-    json_data = json.dumps(data, indent=4)
-    print(json_data)
-
-    # # Define the output file path
-    # output_file = f"{data['Name']}.json"
-    #
-    # # Save the JSON data to the output file
-    # with open(output_file, "w") as file:
-    #     file.write(json_data)
-
-    # Print a message indicating the successful saving of the JSON data
-    #print(f"JSON data has been saved to {output_file}.")
     return data
 
-resume_path = r"resumes/resume (2).docx"
+resume_path = r"Sanjaya_Maharana_3.5_yoe.pdf"
 
-extract_res(resume_path)
+data = extract_res(resume_path)
+print(data)
+
+json_data = generate_json(data)
+
+print(json_data)
